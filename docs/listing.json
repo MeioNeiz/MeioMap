@@ -1,0 +1,24 @@
+{
+  "title": "Meio Map",
+  "summary": "Hover a zone on the world map to see its level range and the fishing skill it needs.",
+  "cfCategory": "Map & Minimap",
+  "cfExtra": [
+    "Professions"
+  ],
+  "wagoCategories": [
+    "Map & Minimap",
+    "Professions"
+  ],
+  "gallery": [
+    {
+      "file": "before-after.png",
+      "title": "Before and after",
+      "description": "Duskwood's map: the area name alone, then with the zone's levels and the fishing skill it needs"
+    },
+    {
+      "file": "continent.png",
+      "title": "Continent map",
+      "description": "Duskwood on the Eastern Kingdoms map: the game's level range, and fishing 150 in red when your skill is lower"
+    }
+  ]
+}

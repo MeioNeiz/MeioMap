@@ -1,0 +1,3 @@
+-- placeholder until gen/gen-data.mjs runs
+local _, ns = ...
+ns.OVERLAYS = {}
