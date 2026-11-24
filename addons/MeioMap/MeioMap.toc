@@ -1,7 +1,7 @@
 ## Interface: 16001
 ## Title: MeioMap
 ## Notes: World map extras: a zone's level range and fishing skill on hover, and coordinates. /meiomap
-## Version: 1.0.0
+## Version: 1.0.1
 ## Author: MeioNeiz
 ## X-Website: https://github.com/MeioNeiz/MeioMap
 ## X-License: MIT

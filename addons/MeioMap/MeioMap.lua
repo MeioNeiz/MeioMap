@@ -108,6 +108,16 @@ function ns.ZoneLine(mapID, hovered)
     if #parts > 0 then return table.concat(parts, "    ") end
 end
 
+-- A cave, city district or other child area belongs to the zone above it, which holds the
+-- level range and fishing data
+local function ZoneOf(info)
+    for _ = 1, 5 do
+        if not info then return end
+        if info.mapType <= Enum.UIMapType.Zone then return info.mapID end
+        info = info.parentMapID and C_Map.GetMapInfo(info.parentMapID)
+    end
+end
+
 -- The zone under the cursor: a child zone on a continent map, else the zone map itself
 local function HoveredZone(map)
     if not map:IsCanvasMouseFocus() then return end
@@ -115,7 +125,8 @@ local function HoveredZone(map)
     if not mapID then return end
     local x, y = map:GetNormalizedCursorPosition()
     local info = x and C_Map.GetMapInfoAtPosition(mapID, x, y)
-    if info and info.mapID ~= mapID then return mapID, info.mapID end
+    local zone = info and info.mapID ~= mapID and ZoneOf(info)
+    if zone then return mapID, zone end
     local own = C_Map.GetMapInfo(mapID)
     if own and own.mapType == Enum.UIMapType.Zone then return mapID, mapID end
 end
@@ -159,7 +170,7 @@ local function SetupMap()
     local map = WorldMapFrame
     if not map or zoneFrame then return end
     SetupZoneLine(map)
-    if ns.SetupReveal then ns.SetupReveal(map) end
+    if ns.HAS_REVEAL then ns.SetupReveal(map) end
 end
 
 local function PrintHelp()
@@ -172,7 +183,7 @@ local function PrintHelp()
         end
     end
     print("  " .. Cmd("/meiomap reset") .. " - all settings back to defaults")
-    print("  Settings: Esc > Options > AddOns > MeioMap (" .. Cmd("/meiomap settings") .. ")")
+    print("  Settings: Esc > Options > AddOns > MeioMap (" .. Cmd("/meiomap") .. ")")
 end
 
 function ns.Refresh()
@@ -184,10 +195,10 @@ SLASH_MEIOMAP2 = "/mapplus"
 SlashCmdList.MEIOMAP = function(msg)
     msg = (msg or ""):lower():match("^%s*(.-)%s*$")
     local word, arg = msg:match("^(%S+)%s*(.-)$")
-    if msg == "" or msg == "help" or msg == "?" then
+    if msg == "help" or msg == "?" then
         PrintHelp()
         return
-    elseif msg == "settings" or msg == "options" then
+    elseif msg == "" or msg == "settings" or msg == "options" then
         if not (ns.OpenSettings and ns.OpenSettings()) then PrintHelp() end
         return
     elseif msg == "reset" then

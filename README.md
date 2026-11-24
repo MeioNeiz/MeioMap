@@ -14,12 +14,14 @@ The world map tells you what the zone under your mouse is good for.
   yours is enough, red when not
 - Turns on the game's own player and cursor coordinates once; switch them off any time
 
-Settings: Esc > Options > AddOns > MeioMap, or `/meiomap`.
+Settings: Esc > Options > AddOns > MeioMap, or `/meiomap`. Hovering a cave or city
+district shows the zone it sits in.
 
 - `/meiomap levels on|off`: level ranges
 - `/meiomap fishing on|off`: fishing skill
 - `/meiomap coords on|off`: coordinates
 - `/meiomap reset`: everything back to defaults
+- `/meiomap help`: these commands
 
 ## Install
 

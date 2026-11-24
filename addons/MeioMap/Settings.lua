@@ -1,4 +1,4 @@
--- Options panel (Esc > Options > AddOns > MeioMap, or /meiomap settings). Checkboxes match
+-- Options panel (Esc > Options > AddOns > MeioMap, or /meiomap). Checkboxes match
 -- the /meiomap toggles; coordinates are a proxy for the client's own CVars.
 local _, ns = ...
 
