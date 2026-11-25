@@ -21,7 +21,7 @@ local function Register()
         local t = toggles[key]
         local variable = "MEIOMAP_" .. key:upper()
         local setting = Settings.RegisterProxySetting(category, variable,
-            Settings.VarType.Boolean, t.label, true,
+            Settings.VarType.Boolean, t.label, ns.DEFAULTS[key] ~= false,
             function() return ns.Get(t) and true or false end,
             function(v)
                 if t.set then t.set(v) else ns.db[key] = v end
@@ -39,7 +39,9 @@ local function Register()
     Header(layout, "On hover", "Under the area name while the mouse is over the map.")
     Checkbox("levels")
     Checkbox("fishing")
-    Header(layout, "Coordinates", "Bottom-left corner of the world map.")
+    Checkbox("gather")
+    Header(layout, "Map", "The world map itself.")
+    Checkbox("zoom")
     Checkbox("coords")
     Settings.RegisterAddOnCategory(category)
 end

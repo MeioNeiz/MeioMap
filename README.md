@@ -1,6 +1,7 @@
 # Meio Map
 
-Hover a zone on the world map to see its level range and the fishing skill it needs.
+Hover a zone on the world map to see its level range and the fishing, herb and ore skill it
+needs.
 
 For WoW Forever.
 
@@ -14,6 +15,9 @@ The world map tells you what the zone under your mouse is good for.
 - On a zone's own map: its level range under the area name, coloured for your level
 - The fishing skill that lands every catch there, on zone and continent maps: green when
   yours is enough, red when not
+- With Herbalism or Mining: the skill the zone's herbs and ore need ("Herbs 50-125
+  Ore 1-155"), green when you can gather them all, yellow for some, red for none
+- Each map keeps its zoom and position when you switch maps or close the map
 - Turns on the game's own player and cursor coordinates once; switch them off any time
 
 Settings: Esc > Options > AddOns > MeioMap, or `/meiomap`. Hovering a cave or city
@@ -21,18 +25,15 @@ district shows the zone it sits in.
 
 - `/meiomap levels on|off`: level ranges
 - `/meiomap fishing on|off`: fishing skill
+- `/meiomap gather on|off`: herb and ore skill
+- `/meiomap zoom on|off`: remembered zoom
 - `/meiomap coords on|off`: coordinates
 - `/meiomap reset`: everything back to defaults
 - `/meiomap help`: these commands
 
-## Coming soon
-
-- Unexplored areas drawn on every zone map, tinted so you still see where you have been
-- Herb and ore skill ranges when you hover a zone ("Herbs 70-125", "Ore 1-75"), coloured
-  for your skill
-
-![Coming soon: Duskwood map: the unexplored west drawn in a bluish grey, the explored east
-around Darkshire in full colour](docs/soon.png)
+New and off for now: unexplored parts of each zone map drawn in a bluish grey, so you
+still see where you have been. Try it with `/meiomap reveal on` (`/meiomap tint off` for
+full colour) and say on GitHub if anything looks wrong.
 
 ## Install
 

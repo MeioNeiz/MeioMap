@@ -1,5 +1,15 @@
 # Meio Map
 
+## 1.1.0
+
+- With Herbalism or Mining, hovering a zone also shows the skill its herbs and ore need
+  ("Herbs 50-125  Ore 1-155"): green when you can gather them all, yellow for some, red for
+  none. `/meiomap gather off` hides it
+- Each map keeps its zoom and position when you switch maps or close and reopen the map,
+  until you reload. `/meiomap zoom off` for the old way
+- Try it: `/meiomap reveal on` draws the unexplored parts of each zone map in a bluish grey
+  (off for now)
+
 ## 1.0.1
 
 - `/meiomap` alone opens the Settings panel, as the README said; `/meiomap help` lists the

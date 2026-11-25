@@ -1,6 +1,6 @@
 {
   "title": "Meio Map",
-  "summary": "Zone level range and fishing skill when you hover the world map.",
+  "summary": "Zone levels, fishing, herb and ore skill when you hover the world map.",
   "cfCategory": "Map & Minimap",
   "cfExtra": [
     "Professions"
@@ -14,6 +14,11 @@
       "file": "before-after.png",
       "title": "Before and after",
       "description": "Duskwood's map with the mouse on The Darkened Bank: the area name alone, then with the zone's levels and the fishing skill it needs"
+    },
+    {
+      "file": "gather.png",
+      "title": "Herb and ore skill",
+      "description": "Twilight Grove in Duskwood hovered by a herbalist and miner: herbs 50-125 and ore 1-155, coloured for your skill"
     },
     {
       "file": "continent.png",

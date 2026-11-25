@@ -3,6 +3,8 @@
 -- frame inside that pin, so they share its position, size and fade-in.
 local _, ns = ...
 
+-- Greyscale first: the overlays' soft edges differ slightly in hue where they meet, which a
+-- plain colour multiply turns into visible seams; brightness matches, so grey hides them
 local TINT = { 0.55, 0.62, 0.8 }
 
 local parsed = {}
@@ -29,9 +31,11 @@ local function Key(o) return o.offsetX .. ":" .. o.offsetY .. ":" .. (o.fileData
 
 local map, pin, holder, pool
 
+-- The pin's own layer index, set by RefreshOverlays just before Draw runs: asking the
+-- canvas before the map has first been shown errors (no zoom levels yet)
 local function TileSize(mapID)
     local layers = C_Map.GetMapArtLayers(mapID)
-    local index = map:GetCanvasContainer():GetCurrentLayerIndex() or 1
+    local index = pin.layerIndex or 1
     local layer = layers and (layers[index] or layers[1])
     return layer and layer.tileWidth or 256, layer and layer.tileHeight or 256
 end
@@ -45,7 +49,7 @@ local function Partial(total, tile)
     return pixels, file
 end
 
-local function DrawOverlay(o, tileW, tileH, r, g, b)
+local function DrawOverlay(o, tileW, tileH, tint)
     local wide = math.ceil(o.textureWidth / tileW)
     local tall = math.ceil(o.textureHeight / tileH)
     for j = 1, tall do
@@ -55,15 +59,21 @@ local function DrawOverlay(o, tileW, tileH, r, g, b)
             local pixelW, fileW = tileW, tileW
             if k == wide then pixelW, fileW = Partial(o.textureWidth, tileW) end
             local fid = o.fileDataIDs[(j - 1) * wide + k]
-            if fid then
+            if fid and fid > 0 then
                 local tex = pool:Acquire()
+                map:AddMaskableTexture(tex)
                 tex:SetSize(pixelW, pixelH)
                 tex:SetTexCoord(0, pixelW / fileW, 0, pixelH / fileH)
                 tex:ClearAllPoints()
                 tex:SetPoint("TOPLEFT", holder, "TOPLEFT", o.offsetX + tileW * (k - 1),
                     -(o.offsetY + tileH * (j - 1)))
                 tex:SetTexture(fid, nil, nil, "TRILINEAR")
-                tex:SetVertexColor(r, g, b)
+                tex:SetDesaturated(tint)
+                if tint then
+                    tex:SetVertexColor(TINT[1], TINT[2], TINT[3])
+                else
+                    tex:SetVertexColor(1, 1, 1)
+                end
                 tex:Show()
             end
         end
@@ -75,15 +85,14 @@ local function Draw()
     pool:ReleaseAll()
     local mapID = map:GetMapID()
     if not (ns.db.reveal and mapID and ns.OVERLAYS[mapID]) then return end
+    if not map:IsShown() then return end
     local explored = {}
     for _, o in ipairs(C_MapExplorationInfo.GetExploredMapTextures(mapID) or {}) do
         explored[Key(o)] = true
     end
     local tileW, tileH = TileSize(mapID)
-    local r, g, b = 1, 1, 1
-    if ns.db.tint then r, g, b = TINT[1], TINT[2], TINT[3] end
     for _, o in ipairs(Overlays(mapID)) do
-        if not explored[Key(o)] then DrawOverlay(o, tileW, tileH, r, g, b) end
+        if not explored[Key(o)] then DrawOverlay(o, tileW, tileH, ns.db.tint) end
     end
 end
 

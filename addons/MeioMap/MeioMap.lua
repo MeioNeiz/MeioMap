@@ -1,13 +1,17 @@
 -- World map extras the client lacks. Coordinates are the client's own (Options > Gameplay >
 -- Interface > Map Coordinates, restyled by FlareUI): MeioMap only switches them on once and
 -- mirrors the toggle. Zone levels on continent hover are the client's too; MeioMap adds the
--- fishing skill there, and level range + fishing while hovering a zone's own map.
+-- fishing and gathering skill there, and level range too while hovering a zone's own map.
+-- Each map also keeps its zoom (Zoom.lua).
 local ADDON, ns = ...
 
-local DEFAULTS = { reveal = true, tint = true, levels = true, fishing = true }
+-- reveal off until its tint seams are checked in game
+local DEFAULTS = { reveal = false, tint = true, levels = true, fishing = true,
+    gather = true, zoom = true }
 local COORD_CVARS = { "worldMapShowPlayerCoords", "worldMapShowCursorCoords" }
 
 local db
+ns.DEFAULTS = DEFAULTS
 
 local function Say(msg) print("|cffb090ffMeioMap:|r " .. msg) end
 local function OnOff(v) return v and "|cff80ff80on|r" or "|cffff8080off|r" end
@@ -40,6 +44,13 @@ ns.TOGGLES = {
     { key = "fishing", label = "Fishing skill",
       tip = "Hovering a zone shows the fishing skill that lands every catch there: green "
           .. "when yours is enough, red when not." },
+    { key = "gather", label = "Gathering skill",
+      tip = "If you know Herbalism or Mining, hovering a zone shows the skill its easiest "
+          .. "and hardest herbs or ore need: green when you can gather them all, yellow "
+          .. "for some, red for none." },
+    { key = "zoom", label = "Remember zoom",
+      tip = "Each map keeps its zoom and position when you switch maps or close the map, "
+          .. "until /reload. Off: the map opens zoomed out, as the game does." },
     { key = "coords", label = "Show coordinates",
       tip = "Your position and the cursor's in the map's bottom-left corner. The client's "
           .. "own option (Options > Gameplay > Interface), switched on together.",
@@ -54,23 +65,34 @@ ns.HAS_REVEAL = next(ns.OVERLAYS) ~= nil
 ns.REVEAL_KEYS = { reveal = true, tint = true }
 function ns.Shown(t) return ns.HAS_REVEAL or not ns.REVEAL_KEYS[t.key] end
 
--- Fishing skill, gear and lure bonus included; nil when not learned
-local FISHING_NAMES = { [PROFESSIONS_FISHING or "Fishing"] = true, Fishing = true }
-local function FishingSkill()
+-- Skill in a profession, gear and lure bonus included; nil when not learned. names: what
+-- the skill tab calls it; line: its skill line ID, for GetProfessionInfo
+local function ProfessionSkill(names, line)
     if GetNumSkillLines and GetSkillLineInfo then
         for i = 1, GetNumSkillLines() do
             local name, header, _, rank, _, modifier = GetSkillLineInfo(i)
-            if not header and FISHING_NAMES[name] then return (rank or 0) + (modifier or 0) end
+            if not header and names[name] then return (rank or 0) + (modifier or 0) end
         end
     end
     if GetProfessions and GetProfessionInfo then
-        local _, _, _, fishing = GetProfessions()
-        if fishing then
-            local _, _, rank, _, _, _, _, modifier = GetProfessionInfo(fishing)
-            return (rank or 0) + (modifier or 0)
+        for _, index in pairs({ GetProfessions() }) do
+            local _, _, rank, _, _, _, skillLine, modifier = GetProfessionInfo(index)
+            if skillLine == line then return (rank or 0) + (modifier or 0) end
         end
     end
 end
+
+local function Names(english, line)
+    local names = { [english] = true }
+    local display = C_TradeSkillUI and C_TradeSkillUI.GetTradeSkillDisplayName
+        and C_TradeSkillUI.GetTradeSkillDisplayName(line)
+    if display then names[display] = true end
+    return names
+end
+
+local FISHING_NAMES = Names("Fishing", 356)
+if PROFESSIONS_FISHING then FISHING_NAMES[PROFESSIONS_FISHING] = true end
+local HERBALISM_NAMES, MINING_NAMES = Names("Herbalism", 182), Names("Mining", 186)
 
 local function Hex(c) return RGBTableToColorCode and RGBTableToColorCode(c) or "|cffffffff" end
 
@@ -95,9 +117,25 @@ end
 local function FishingText(mapID)
     local need = ns.FISHING[mapID]
     if not need then return end
-    local have = FishingSkill()
+    local have = ProfessionSkill(FISHING_NAMES, 356)
     local color = not have and "|cffffffff" or have >= need and "|cff80ff80" or "|cffff8080"
     return NORMAL_FONT_COLOR_CODE .. "Fishing|r " .. color .. need .. "|r"
+end
+
+local function GatherText(label, range, have)
+    if not (range and have) then return end
+    local min, max = range[1], range[2]
+    local color
+    if have >= max then
+        color = "|cff80ff80"
+    elseif have >= min then
+        -- plain yellow: the difficulty gold would read as part of the "Herbs" label
+        color = "|cffffff00"
+    else
+        color = "|cffff8080"
+    end
+    local text = min == max and tostring(max) or (min .. "-" .. max)
+    return NORMAL_FONT_COLOR_CODE .. label .. "|r " .. color .. text .. "|r"
 end
 
 function ns.ZoneLine(mapID, hovered)
@@ -105,6 +143,12 @@ function ns.ZoneLine(mapID, hovered)
     local isZoneMap = hovered == mapID
     if isZoneMap and db.levels then parts[#parts + 1] = LevelText(hovered) end
     if db.fishing then parts[#parts + 1] = FishingText(hovered) end
+    local gather = db.gather and ns.GATHER[hovered]
+    if gather then
+        parts[#parts + 1] = GatherText("Herbs", gather.herb,
+            ProfessionSkill(HERBALISM_NAMES, 182))
+        parts[#parts + 1] = GatherText("Ore", gather.ore, ProfessionSkill(MINING_NAMES, 186))
+    end
     if #parts > 0 then return table.concat(parts, "    ") end
 end
 
@@ -171,11 +215,12 @@ local function SetupMap()
     if not map or zoneFrame then return end
     SetupZoneLine(map)
     if ns.HAS_REVEAL then ns.SetupReveal(map) end
+    ns.SetupZoom(map)
 end
 
 local function PrintHelp()
     Say("world map extras: " .. (ns.HAS_REVEAL and "unexplored areas, " or "")
-        .. "zone levels, fishing skill, coordinates")
+        .. "zone levels, fishing and gathering skill, remembered zoom, coordinates")
     for _, t in ipairs(ns.TOGGLES) do
         if ns.Shown(t) then
             print(("  %s - %s (now %s)"):format(Cmd("/meiomap " .. t.key .. " on||off"),
