@@ -25,6 +25,13 @@ district shows the zone it sits in.
 - `/meiomap reset`: everything back to defaults
 - `/meiomap help`: these commands
 
+## Coming soon
+
+- Unexplored areas drawn on every zone map, tinted so you still see where you have been
+
+![Coming soon: Duskwood map: the unexplored west drawn in a bluish grey, the explored east
+around Darkshire in full colour](docs/soon.png)
+
 ## Install
 
 Use your addon manager (CurseForge, Wago), or unzip a GitHub release into
