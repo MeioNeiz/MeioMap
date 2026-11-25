@@ -17,6 +17,9 @@ The world map tells you what the zone under your mouse is good for.
   yours is enough, red when not
 - With Herbalism or Mining: the skill the zone's herbs and ore need ("Herbs 50-125
   Ore 1-155"), green when you can gather them all, yellow for some, red for none
+
+![Twilight Grove in Duskwood hovered by a herbalist and miner: "Levels 18-30, Fishing 150,
+Herbs 50-125, Ore 1-155", coloured for your skill](docs/gather.png)
 - Each map keeps its zoom and position when you switch maps or close the map
 - Turns on the game's own player and cursor coordinates once; switch them off any time
 
