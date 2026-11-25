@@ -1,6 +1,6 @@
 {
   "title": "Meio Map",
-  "summary": "Hover a zone on the world map to see its level range and the fishing skill it needs.",
+  "summary": "Zone level range and fishing skill when you hover the world map.",
   "cfCategory": "Map & Minimap",
   "cfExtra": [
     "Professions"
