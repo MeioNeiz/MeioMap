@@ -28,6 +28,8 @@ district shows the zone it sits in.
 ## Coming soon
 
 - Unexplored areas drawn on every zone map, tinted so you still see where you have been
+- Herb and ore skill ranges when you hover a zone ("Herbs 70-125", "Ore 1-75"), coloured
+  for your skill
 
 ![Coming soon: Duskwood map: the unexplored west drawn in a bluish grey, the explored east
 around Darkshire in full colour](docs/soon.png)
