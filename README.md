@@ -4,8 +4,8 @@ Hover a zone on the world map to see its level range and the fishing skill it ne
 
 For WoW Forever.
 
-![Duskwood's map with the mouse on Twilight Grove: before, only the area name; with Meio Map,
-"Levels 18-30" and "Fishing 150" under it](docs/before-after.png)
+![Duskwood's map with the mouse on The Darkened Bank: before, only the area name; with Meio
+Map, "Levels 18-30" and "Fishing 150" under it](docs/before-after.png)
 
 ## What it does
 

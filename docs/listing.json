@@ -13,12 +13,12 @@
     {
       "file": "before-after.png",
       "title": "Before and after",
-      "description": "Duskwood's map: the area name alone, then with the zone's levels and the fishing skill it needs"
+      "description": "Duskwood's map with the mouse on The Darkened Bank: the area name alone, then with the zone's levels and the fishing skill it needs"
     },
     {
       "file": "continent.png",
       "title": "Continent map",
-      "description": "Duskwood on the Eastern Kingdoms map: the game's level range, and fishing 150 in red when your skill is lower"
+      "description": "Eastern Kingdoms zoomed in, the mouse on Duskwood: the game's level range, and fishing 150 in red when your skill is lower"
     }
   ]
 }
