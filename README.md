@@ -1,7 +1,6 @@
 # Meio Map
 
-Hover a zone on the world map to see its level range and the fishing, herb and ore skill it
-needs.
+Hover a zone on the world map: its level range and the fishing, herb and ore skill it needs.
 
 For WoW Forever.
 
