@@ -20,7 +20,10 @@ The world map tells you what the zone under your mouse is good for.
 
 ![Twilight Grove in Duskwood hovered by a herbalist and miner: "Levels 18-30, Fishing 150,
 Herbs 50-125, Ore 1-155", coloured for your skill](docs/gather.png)
-- Each map keeps its zoom and position when you switch maps or close the map
+- The areas of a zone you have not discovered yet ("Unexplored Addle's Stead, Raven Hill,
+  Raven Hill Cemetery +5"), for exploration credit and the Legacy talent point
+- Each map keeps its zoom and position when you switch maps, close the map, reload or log
+  out
 - Turns on the game's own player and cursor coordinates once; switch them off any time
 
 Settings: Esc > Options > AddOns > MeioMap, or `/meiomap`. Hovering a cave or city
@@ -29,6 +32,7 @@ district shows the zone it sits in.
 - `/meiomap levels on|off`: level ranges
 - `/meiomap fishing on|off`: fishing skill
 - `/meiomap gather on|off`: herb and ore skill
+- `/meiomap explore on|off`: areas left to explore
 - `/meiomap zoom on|off`: remembered zoom
 - `/meiomap coords on|off`: coordinates
 - `/meiomap reset`: everything back to defaults

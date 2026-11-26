@@ -35,6 +35,7 @@ local function Register()
         Header(layout, "Unexplored areas", "Parts of a zone map you have not been to yet.")
         Checkbox("reveal")
         Checkbox("tint")
+        Checkbox("explore")
     end
     Header(layout, "On hover", "Under the area name while the mouse is over the map.")
     Checkbox("levels")

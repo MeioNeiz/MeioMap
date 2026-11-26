@@ -29,6 +29,36 @@ ns.Overlays = Overlays
 
 local function Key(o) return o.offsetX .. ":" .. o.offsetY .. ":" .. (o.fileDataIDs[1] or 0) end
 
+local function ExploredKeys(mapID)
+    local explored = {}
+    for _, o in ipairs(C_MapExplorationInfo.GetExploredMapTextures(mapID) or {}) do
+        explored[Key(o)] = true
+    end
+    return explored
+end
+
+-- Area IDs of a zone's unexplored overlays, in map order; nil for a zone without data
+function ns.UnexploredAreas(mapID)
+    local areas = ns.OVERLAY_AREAS and ns.OVERLAY_AREAS[mapID]
+    if not areas then return end
+    local perOverlay = {}
+    for entry in areas:gmatch("[^;]+") do perOverlay[#perOverlay + 1] = entry end
+    local explored = ExploredKeys(mapID)
+    local list, seen = {}, {}
+    for i, o in ipairs(Overlays(mapID)) do
+        if not explored[Key(o)] then
+            for id in (perOverlay[i] or ""):gmatch("%d+") do
+                id = tonumber(id)
+                if id > 0 and not seen[id] then
+                    seen[id] = true
+                    list[#list + 1] = id
+                end
+            end
+        end
+    end
+    return list
+end
+
 local map, pin, holder, pool
 
 -- The pin's own layer index, set by RefreshOverlays just before Draw runs: asking the
@@ -86,10 +116,7 @@ local function Draw()
     local mapID = map:GetMapID()
     if not (ns.db.reveal and mapID and ns.OVERLAYS[mapID]) then return end
     if not map:IsShown() then return end
-    local explored = {}
-    for _, o in ipairs(C_MapExplorationInfo.GetExploredMapTextures(mapID) or {}) do
-        explored[Key(o)] = true
-    end
+    local explored = ExploredKeys(mapID)
     local tileW, tileH = TileSize(mapID)
     for _, o in ipairs(Overlays(mapID)) do
         if not explored[Key(o)] then DrawOverlay(o, tileW, tileH, ns.db.tint) end

@@ -1,5 +1,12 @@
 # Meio Map
 
+## 1.2.0
+
+- Hovering a zone names the areas you have not discovered there yet ("Unexplored Addle's
+  Stead, Raven Hill, Raven Hill Cemetery +5"), for exploration credit and the Legacy talent
+  point. `/meiomap explore off` hides it
+- Each map's zoom and position now last through /reload and logout
+
 ## 1.1.0
 
 - With Herbalism or Mining, hovering a zone also shows the skill its herbs and ore need

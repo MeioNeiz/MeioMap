@@ -6,8 +6,8 @@
 local ADDON, ns = ...
 
 -- reveal off until its tint seams are checked in game
-local DEFAULTS = { reveal = false, tint = true, levels = true, fishing = true,
-    gather = true, zoom = true }
+local DEFAULTS = { reveal = false, tint = true, explore = true, levels = true,
+    fishing = true, gather = true, zoom = true }
 local COORD_CVARS = { "worldMapShowPlayerCoords", "worldMapShowCursorCoords" }
 
 local db
@@ -38,6 +38,9 @@ ns.TOGGLES = {
     { key = "tint", label = "Tint unexplored",
       tip = "Unexplored areas are drawn bluish grey, so you can still tell where you have "
           .. "been. Off: they look the same as explored ones." },
+    { key = "explore", label = "Left to explore",
+      tip = "Hovering a zone names the areas you have not discovered there yet, for "
+          .. "exploration credit and the Legacy talent point." },
     { key = "levels", label = "Zone levels",
       tip = "Hovering a zone's own map shows its level range under the area name, coloured "
           .. "for your level. Continent maps show it already." },
@@ -49,8 +52,8 @@ ns.TOGGLES = {
           .. "and hardest herbs or ore need: green when you can gather them all, yellow "
           .. "for some, red for none." },
     { key = "zoom", label = "Remember zoom",
-      tip = "Each map keeps its zoom and position when you switch maps or close the map, "
-          .. "until /reload. Off: the map opens zoomed out, as the game does." },
+      tip = "Each map keeps its zoom and position when you switch maps, close the map, "
+          .. "reload or log out. Off: the map opens zoomed out, as the game does." },
     { key = "coords", label = "Show coordinates",
       tip = "Your position and the cursor's in the map's bottom-left corner. The client's "
           .. "own option (Options > Gameplay > Interface), switched on together.",
@@ -62,7 +65,7 @@ function ns.Get(t) if t.get then return t.get() end return db[t.key] end
 -- Reveal data comes from a DB2 extract (gen/gen-data.mjs); until it exists those toggles
 -- would do nothing, so help and Settings leave them out
 ns.HAS_REVEAL = next(ns.OVERLAYS) ~= nil
-ns.REVEAL_KEYS = { reveal = true, tint = true }
+ns.REVEAL_KEYS = { reveal = true, tint = true, explore = true }
 function ns.Shown(t) return ns.HAS_REVEAL or not ns.REVEAL_KEYS[t.key] end
 
 -- Skill in a profession, gear and lure bonus included; nil when not learned. names: what
@@ -152,6 +155,38 @@ function ns.ZoneLine(mapID, hovered)
     if #parts > 0 then return table.concat(parts, "    ") end
 end
 
+-- Names of the first few unexplored areas, then how many more. Cached per zone while the
+-- map is open: exploring with the map open is rare, and the cache is dropped on every open.
+local EXPLORE_NAMES = 3
+local exploreCache = {}
+function ns.ForgetExplored() wipe(exploreCache) end
+
+local function ExploreText(mapID)
+    local cached = exploreCache[mapID]
+    if cached ~= nil then return cached or nil end
+    local areas = ns.UnexploredAreas and ns.UnexploredAreas(mapID)
+    local text = false
+    if areas and #areas > 0 then
+        local names = {}
+        for _, id in ipairs(areas) do
+            local name = C_Map.GetAreaInfo and C_Map.GetAreaInfo(id)
+            if type(name) == "string" and name ~= "" and #names < EXPLORE_NAMES then
+                names[#names + 1] = name
+            end
+        end
+        local more = #areas - #names
+        local list = table.concat(names, ", ")
+        if #names == 0 then
+            list = more .. (more == 1 and " area" or " areas")
+        elseif more > 0 then
+            list = list .. " +" .. more
+        end
+        text = NORMAL_FONT_COLOR_CODE .. "Unexplored|r |cffa8b4d8" .. list .. "|r"
+    end
+    exploreCache[mapID] = text
+    return text or nil
+end
+
 -- A cave, city district or other child area belongs to the zone above it, which holds the
 -- level range and fishing data
 local function ZoneOf(info)
@@ -194,12 +229,19 @@ local function SetupZoneLine(map)
     if font then text:SetFont(font, 14, "OUTLINE") end
     text:SetPoint("TOP")
     zoneFrame.text = text
+    -- on a child frame: the zone line stays the frame's only region
+    local exploreFrame = CreateFrame("Frame", nil, zoneFrame)
+    exploreFrame:SetAllPoints()
+    local explore = exploreFrame:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+    if font then explore:SetFont(font, 13, "OUTLINE") end
+    explore:SetPoint("TOP", text, "BOTTOM", 0, -3)
+    zoneFrame.explore = explore
     if label then
         zoneFrame:SetPoint("TOP", label.Name, "BOTTOM", 0, -4)
     else
         zoneFrame:SetPoint("TOP", map:GetCanvasContainer(), "TOP", 0, -40)
     end
-    local last
+    local last, lastExplore
     zoneFrame:SetScript("OnUpdate", function()
         local mapID, hovered = HoveredZone(map)
         local line = hovered and ns.ZoneLine(mapID, hovered)
@@ -207,7 +249,13 @@ local function SetupZoneLine(map)
             last = line
             text:SetText(line or "")
         end
+        local unexplored = hovered and db.explore and ExploreText(hovered)
+        if unexplored ~= lastExplore then
+            lastExplore = unexplored
+            explore:SetText(unexplored or "")
+        end
     end)
+    map:HookScript("OnShow", ns.ForgetExplored)
 end
 
 local function SetupMap()
@@ -232,6 +280,7 @@ local function PrintHelp()
 end
 
 function ns.Refresh()
+    ns.ForgetExplored()
     if ns.RefreshReveal then ns.RefreshReveal() end
 end
 
