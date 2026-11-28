@@ -5,9 +5,11 @@
 -- Each map also keeps its zoom (Zoom.lua).
 local ADDON, ns = ...
 
--- reveal off until its tint seams are checked in game
+-- reveal off until its tint seams are checked in game; dungeon maps and entrances until
+-- seen in game
 local DEFAULTS = { reveal = false, tint = true, explore = true, levels = true,
-    fishing = true, gather = true, zoom = true }
+    fishing = true, gather = true, zoom = true, dungeons = false, entrances = false,
+    arrow = true, search = true }
 local COORD_CVARS = { "worldMapShowPlayerCoords", "worldMapShowCursorCoords" }
 
 local db
@@ -16,7 +18,7 @@ ns.DEFAULTS = DEFAULTS
 local function Say(msg) print("|cffb090ffMeioMap:|r " .. msg) end
 local function OnOff(v) return v and "|cff80ff80on|r" or "|cffff8080off|r" end
 local function Cmd(text) return "|cffffd100" .. text .. "|r" end
-ns.Say, ns.OnOff = Say, OnOff
+ns.Say, ns.OnOff, ns.Cmd = Say, OnOff, Cmd
 
 function ns.CoordsOn()
     for _, cvar in ipairs(COORD_CVARS) do
@@ -51,6 +53,23 @@ ns.TOGGLES = {
       tip = "If you know Herbalism or Mining, hovering a zone shows the skill its easiest "
           .. "and hardest herbs or ore need: green when you can gather them all, yellow "
           .. "for some, red for none." },
+    { key = "dungeons", label = "Dungeon maps",
+      tip = "M inside a dungeon shows Blizzard's map of it, turned to the level you're "
+          .. "on, with its bosses in kill order and a tick for each kill. Wheel zooms, "
+          .. "drag moves. Any dungeon: the Dungeons menu on the map, or "
+          .. "/meiomap dungeon <name>." },
+    { key = "entrances", label = "Entrances",
+      tip = "Zone and continent maps mark each dungeon and raid entrance; hover for its "
+          .. "levels, coloured for yours. Click opens the dungeon's map (with Dungeon maps "
+          .. "on), Shift-click sets a waypoint there." },
+    { key = "arrow", label = "Waypoint arrow",
+      tip = "While a waypoint is set (Shift-click a map pin, the map search or "
+          .. "/meiomap way), an arrow on screen points to it with the yards and time "
+          .. "left, and the waypoint clears when you arrive. Drag to move it, right-click "
+          .. "clears the waypoint." },
+    { key = "search", label = "Map search",
+      tip = "A search box on the world map's top bar finds a zone, dungeon or flight "
+          .. "master by name and shows it; Shift-click sets a waypoint there." },
     { key = "zoom", label = "Remember zoom",
       tip = "Each map keeps its zoom and position when you switch maps, close the map, "
           .. "reload or log out. Off: the map opens zoomed out, as the game does." },
@@ -99,11 +118,8 @@ local HERBALISM_NAMES, MINING_NAMES = Names("Herbalism", 182), Names("Mining", 1
 
 local function Hex(c) return RGBTableToColorCode and RGBTableToColorCode(c) or "|cffffffff" end
 
--- Blizzard's colouring for continent hover (arealabeldataprovider.lua)
-local function LevelText(mapID)
-    if not C_Map.GetMapLevels then return end
-    local min, max = C_Map.GetMapLevels(mapID)
-    if not (min and max and min > 0 and max > 0) then return end
+-- "18-30" in Blizzard's colouring for continent hover (arealabeldataprovider.lua)
+function ns.LevelRange(min, max)
     local level = UnitLevel("player")
     local color
     if level < min then
@@ -114,7 +130,14 @@ local function LevelText(mapID)
         color = QuestDifficultyColors.difficult
     end
     local range = min == max and tostring(max) or (min .. "-" .. max)
-    return NORMAL_FONT_COLOR_CODE .. "Levels|r " .. Hex(color) .. range .. "|r"
+    return Hex(color) .. range .. "|r"
+end
+
+local function LevelText(mapID)
+    if not C_Map.GetMapLevels then return end
+    local min, max = C_Map.GetMapLevels(mapID)
+    if not (min and max and min > 0 and max > 0) then return end
+    return NORMAL_FONT_COLOR_CODE .. "Levels|r " .. ns.LevelRange(min, max)
 end
 
 local function FishingText(mapID)
@@ -236,13 +259,26 @@ local function SetupZoneLine(map)
     if font then explore:SetFont(font, 13, "OUTLINE") end
     explore:SetPoint("TOP", text, "BOTTOM", 0, -3)
     zoneFrame.explore = explore
-    if label then
-        zoneFrame:SetPoint("TOP", label.Name, "BOTTOM", 0, -4)
-    else
-        zoneFrame:SetPoint("TOP", map:GetCanvasContainer(), "TOP", 0, -40)
+    -- under Blizzard's description line when something fills it (pet levels, or another
+    -- addon's fishing skill), else straight under the area name
+    local below
+    local function Place()
+        local desc = label and label.Description
+        local target = label and label.Name
+        if desc and desc:IsVisible() and (desc:GetText() or "") ~= "" then target = desc end
+        if target == below and below then return end
+        below = target
+        zoneFrame:ClearAllPoints()
+        if target then
+            zoneFrame:SetPoint("TOP", target, "BOTTOM", 0, -4)
+        else
+            zoneFrame:SetPoint("TOP", map:GetCanvasContainer(), "TOP", 0, -40)
+        end
     end
+    Place()
     local last, lastExplore
     zoneFrame:SetScript("OnUpdate", function()
+        Place()
         local mapID, hovered = HoveredZone(map)
         local line = hovered and ns.ZoneLine(mapID, hovered)
         if line ~= last then
@@ -264,22 +300,58 @@ local function SetupMap()
     SetupZoneLine(map)
     if ns.HAS_REVEAL then ns.SetupReveal(map) end
     ns.SetupZoom(map)
+    ns.SetupDungeon(map)
+    ns.SetupEntrances(map)
+    ns.SetupSearch(map)
 end
 
 local function PrintHelp()
     Say("world map extras: " .. (ns.HAS_REVEAL and "unexplored areas, " or "")
-        .. "zone levels, fishing and gathering skill, remembered zoom, coordinates")
+        .. "zone levels, fishing and gathering skill, waypoint arrow, map search, "
+        .. "remembered zoom, coordinates")
     for _, t in ipairs(ns.TOGGLES) do
         if ns.Shown(t) then
             print(("  %s - %s (now %s)"):format(Cmd("/meiomap " .. t.key .. " on||off"),
                 t.label:lower(), OnOff(ns.Get(t))))
         end
     end
-    print("  " .. Cmd("/meiomap reset") .. " - all settings back to defaults")
+    print("  " .. Cmd("/meiomap way <x> <y> [zone]") .. " - set a waypoint (no zone: the "
+        .. "one you're in; no numbers: the current one)")
+    print("  " .. Cmd("/meiomap way clear") .. " - clear the waypoint")
+    print("  " .. Cmd("/meiomap dungeon <name>") .. " - open a dungeon's map (brd, sm, "
+        .. "deadmines...; no name: the one you're in, or the list)")
+    print("  " .. Cmd("/meiomap reset") .. " - all settings back to defaults, arrow back "
+        .. "in place")
     print("  Settings: Esc > Options > AddOns > MeioMap (" .. Cmd("/meiomap") .. ")")
 end
 
+local function DungeonCommand(name)
+    if not db.dungeons then
+        Say("dungeon maps are " .. OnOff(false) .. ": " .. Cmd("/meiomap dungeons on"))
+        return
+    end
+    local id
+    if name == "" then
+        local inside = select(8, GetInstanceInfo())
+        if inside and ns.DUNGEONS[inside] then id = inside end
+    else
+        id = ns.FindDungeon(name)
+    end
+    if not id then
+        if name ~= "" then Say(("no dungeon called \"%s\""):format(name)) end
+        local withArt, without = ns.DungeonNames()
+        Say("dungeons with a map: " .. table.concat(withArt, ", "))
+        print("  |cff999999Boss list only: " .. table.concat(without, ", ") .. "|r")
+        return
+    end
+    if not ns.ShowDungeon(id) then Say("open the map first (" .. Cmd("M") .. ")") end
+end
+
 function ns.Refresh()
+    ns.RefreshDungeon()
+    ns.RefreshEntrances()
+    ns.RefreshSearch()
+    ns.RefreshArrow()
     ns.ForgetExplored()
     if ns.RefreshReveal then ns.RefreshReveal() end
 end
@@ -295,8 +367,16 @@ SlashCmdList.MEIOMAP = function(msg)
     elseif msg == "" or msg == "settings" or msg == "options" then
         if not (ns.OpenSettings and ns.OpenSettings()) then PrintHelp() end
         return
+    elseif word == "dungeon" then
+        DungeonCommand(arg)
+        return
+    elseif word == "way" then
+        ns.WayCommand(arg)
+        return
     elseif msg == "reset" then
         for k, v in pairs(DEFAULTS) do db[k] = v end
+        db.arrowPos = nil
+        ns.PlaceArrow()
         ns.SetCoords(true)
         Say("settings back to defaults")
         ns.Refresh()
@@ -338,5 +418,7 @@ f:SetScript("OnEvent", function(_, event, name)
             if not ns.CoordsOn() then ns.SetCoords(true) end
         end
         SetupMap()
+        ns.RefreshDungeon()
+        ns.RefreshSearch()
     end
 end)

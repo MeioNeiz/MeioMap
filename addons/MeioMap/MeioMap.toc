@@ -1,7 +1,7 @@
 ## Interface: 16001
 ## Title: MeioMap
 ## Notes: World map extras: a zone's level range, fishing, herb and ore skill and areas left to explore on hover, remembered zoom, coordinates. /meiomap
-## Version: 1.2.0
+## Version: 1.3.0
 ## Author: MeioNeiz
 ## X-Website: https://github.com/MeioNeiz/MeioMap
 ## X-License: MIT
@@ -15,7 +15,14 @@
 Data.lua
 Zones.lua
 Gather.lua
+DungeonData.lua
+EntranceData.lua
 MeioMap.lua
 Reveal.lua
 Zoom.lua
+Dungeon.lua
+Entrances.xml
+Entrances.lua
+Waypoint.lua
+Search.lua
 Settings.lua

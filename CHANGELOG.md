@@ -1,5 +1,20 @@
 # Meio Map
 
+## 1.3.0
+
+- The zone line no longer covers the map's own title or another addon's fishing line under
+  it (Leatrix Maps): it moves below them
+- Waypoint arrow: Shift-click a map pin or use the map search, and an arrow at the top of
+  the screen points there with the yards and time left; it clears when you arrive. Drag to
+  move, right-click clears. `/meiomap way 42.5 71.7 westfall`, `/meiomap arrow off`
+- Map search: a box on the world map's top bar finds a zone, dungeon or flight master and
+  shows it; a flight master or dungeon gets a waypoint. `/meiomap search off`
+- Try it (off for now): `/meiomap dungeons on` shows Blizzard's map of the dungeon you are
+  in with M, turned to your level, bosses in kill order with a tick for each kill; any
+  dungeon from the map's Dungeons menu or `/meiomap dungeon <name>`
+- Try it (off for now): `/meiomap entrances on` marks dungeon and raid entrances on zone and
+  continent maps; hover for levels, click opens the dungeon map, Shift-click sets a waypoint
+
 ## 1.2.0
 
 - Hovering a zone names the areas you have not discovered there yet ("Unexplored Addle's

@@ -1,0 +1,11 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/">
+  <!-- our own template, so our pins get their own pool in WorldMapFrame.pinPools -->
+  <Frame name="MeioMapDungeonPinTemplate" mixin="MeioMapDungeonPinMixin" enableMouse="true" virtual="true">
+    <Size x="32" y="32"/>
+    <Layers>
+      <Layer level="ARTWORK">
+        <Texture parentKey="Icon" setAllPoints="true"/>
+      </Layer>
+    </Layers>
+  </Frame>
+</Ui>

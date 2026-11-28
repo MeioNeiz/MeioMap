@@ -24,6 +24,10 @@ Herbs 50-125, Ore 1-155", coloured for your skill](docs/gather.png)
 - Each map keeps its zoom and position when you switch maps, close the map, reload or log
   out
 - Turns on the game's own player and cursor coordinates once; switch them off any time
+- A waypoint arrow at the top of the screen: Shift-click a map pin, pick a result in the
+  map search or type `/meiomap way 42.5 71.7 westfall`; it shows the yards and time left
+  and clears when you arrive (drag to move, right-click clears)
+- A search box on the map's top bar finds a zone, dungeon or flight master
 
 Settings: Esc > Options > AddOns > MeioMap, or `/meiomap`. Hovering a cave or city
 district shows the zone it sits in.
@@ -34,12 +38,19 @@ district shows the zone it sits in.
 - `/meiomap explore on|off`: areas left to explore
 - `/meiomap zoom on|off`: remembered zoom
 - `/meiomap coords on|off`: coordinates
+- `/meiomap arrow on|off`: waypoint arrow; `/meiomap search on|off`: map search
+- `/meiomap way <x> <y> [zone]`: set a waypoint; `/meiomap way clear`: clear it
 - `/meiomap reset`: everything back to defaults
 - `/meiomap help`: these commands
 
 New and off for now: unexplored parts of each zone map drawn in a bluish grey, so you
 still see where you have been. Try it with `/meiomap reveal on` (`/meiomap tint off` for
 full colour) and say on GitHub if anything looks wrong.
+
+Also new and off for now: `/meiomap dungeons on` shows Blizzard's map of the dungeon you
+are in when you press M, turned to your level, with its bosses and a tick for each kill
+(`/meiomap dungeon <name>` opens any dungeon); `/meiomap entrances on` marks dungeon and
+raid entrances on zone and continent maps.
 
 ## Install
 
